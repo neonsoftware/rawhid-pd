@@ -31,3 +31,12 @@
 # Debug files
 *.dSYM/
 *.su
+
+# old code 
+old_code
+
+# compiled .pd externals
+*_darwin
+*_linux
+
+
