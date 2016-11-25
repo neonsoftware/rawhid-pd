@@ -35,7 +35,7 @@ UNITTESTS =
 #
 #------------------------------------------------------------------------------#
 
-ALL_CFLAGS = -I"$(PD_INCLUDE)"
+ALL_CFLAGS =-Wall -W -Wextra -pedantic -I"$(PD_INCLUDE)" -Wno-implicit-function-declaration -Wno-unused-parameter -Wno-unused-function -std=c99
 ALL_LDFLAGS =  
 SHARED_LDFLAGS =
 ALL_LIBS = 
@@ -49,7 +49,7 @@ ALL_LIBS =
 
 # these can be set from outside without (usually) breaking the build
 CPPFLAGS =
-CFLAGS = -Wall -W -g
+CFLAGS = -g
 LDFLAGS =
 LIBS =
 
