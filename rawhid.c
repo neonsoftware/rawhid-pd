@@ -61,12 +61,12 @@ typedef struct _rawhid {
 	double x_deltime;
 	unsigned char *x_inbuf;
 	unsigned char *x_outbuf;
-	int x_inbuf_len;
-	int x_outbuf_len;
-	int x_outbuf_wr_index; /* offset to next free location in x_outbuf */
+	size_t x_inbuf_len;
+	size_t x_outbuf_len;
+	size_t x_outbuf_wr_index; /* offset to next free location in x_outbuf */
 	FILE *x_debug_file_out;
 	FILE *x_debug_file_in;
-	t_int x_packets_to_recv;
+	size_t x_packets_to_recv;
 } t_rawhid;
 
 static void rawhid_close_device(t_rawhid *x);
@@ -88,7 +88,7 @@ static void rawhid_free(t_rawhid *x);
 
 static void rawhid_tick(t_rawhid *x)
 {
-	int packets_received = 0;
+	size_t packets_received = 0;
 
 	if (x->x_isOpen) {
 		int recv_bytes = 0;
@@ -178,86 +178,6 @@ static int write_serials(t_rawhid *x, unsigned char *buf, size_t buf_len)
 			return -1;
 		}
 	}
-
-// 	if (buf_length <= BLOCK_SIZE) {
-// 		if (buf_length == BLOCK_SIZE) {
-// #ifdef DEBUG_FILE
-// 			sent_bytes += fwrite(serial_buf, sizeof(char), BLOCK_SIZE, x->x_debug_file_out);
-// 			fflush(x->x_debug_file_out);
-// #else
-// 			sent_bytes += rawhid_send(0, serial_buf, BLOCK_SIZE, 0);
-// #endif
-// 		} else {
-			
-// 			memset(padded_buf, 0, BLOCK_SIZE);
-
-// 			DEBUG_DUMP(padded_buf, BLOCK_SIZE, "[rawhid] padded_buf_zeroed");
-// 			DEBUG_DUMP(serial_buf, buf_length, "[rawhid] serial_buf");
-
-// 			memcpy(padded_buf, serial_buf, buf_length);
-
-// 			DEBUG_POST(("[rawhid] Making padding. copying the first %d bytes. %s",
-// 				    buf_length, padded_buf));
-
-// 			/*Adding final padding bytes */
-// 			// memset(padded_buf + buf_length, 0, BLOCK_SIZE - buf_length); 
-// #ifdef DEBUG_FILE
-// 			sent_bytes += fwrite(padded_buf, sizeof(char), BLOCK_SIZE, x->x_debug_file_out);
-// 			fflush(x->x_debug_file_out);
-// #else
-
-// 			DEBUG_DUMP(padded_buf, BLOCK_SIZE, "[rawhid] padded_buf");
-// 			sent_bytes += rawhid_send(0, padded_buf, BLOCK_SIZE, 0);
-// #endif
-// 		}
-// 	} else {
-// 		/* at this point buf_length is > BLOCK_SIZE */
-// 		size_t bytes_to_send = buf_length;
-
-
-// 		sent_bytes += rawhid_send(0, serial_buf, serial_buf - fullpacket_bytes, 0);
-
-
-
-// 		size_t outpacket_bytes = buf_length % BLOCK_SIZE;
-// 		ptrdiff_t fullpacket_bytes = serial_buf - outpacket_bytes;
-
-// // OMG. SOOO wrong. serial_but is NOT the size !!!
-
-// // Sending full packets. 
-// #ifdef DEBUG_FILE
-// 		sent_bytes += fwrite(serial_buf, sizeof(char), serial_buf - fullpacket_bytes,
-// 				     x->x_debug_file_out);
-// 		fflush(x->x_debug_file_out);
-// #else
-// 		sent_bytes += rawhid_send(0, serial_buf, serial_buf - fullpacket_bytes, 0);
-// #endif
-
-// 		/* Sending remaining bytes within a new packet */
-// 		unsigned char padded_buf[BLOCK_SIZE];
-// 		memncpy(padded_buf, serial_buf + fullpacket_bytes, outpacket_bytes);
-// 		memset(padded_buf + outpacket_bytes, 0, BLOCK_SIZE - buf_length); /* padding bytes */
-
-// #ifdef DEBUG_FILE
-// 		sent_bytes += fwrite(padded_buf, sizeof(char), BLOCK_SIZE, x->x_debug_file_out);
-// 		fflush(x->x_debug_file_out);
-// #else
-// 		sent_bytes += rawhid_send(0, padded_buf, BLOCK_SIZE, 0);
-// #endif
-// 	}
-
-// 	// int sent = rawhid_send(0, serial_buf, buf_length, 0);
-
-// 	if (sent_bytes < buf_length && (sent_bytes % BLOCK_SIZE) != 0) {
-// 		pd_error(x, "[rawhid] Write failed for %zu bytes, error is %d", sent_bytes, errno);
-// 	} else {
-// 		DEBUG_POST(("[rawhid] Written %d bytes.", sent_bytes));
-// 	}
-
-	// if (i != buf_length)
-	// {
-	// 	post ("[rawhid] buffer is full");
-	// }
 	return buf_len;
 }
 
