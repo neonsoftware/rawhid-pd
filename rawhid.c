@@ -85,36 +85,33 @@ static void   	rawhid_free(t_rawhid *x);
 
 static void rawhid_tick(t_rawhid *x)
 {
-	size_t packets_received = 0;
+	size_t recv_pakts = 0;
 	int recv_bytes = 0;
 
-	while (x->x_isOpen && packets_received < x->x_packets_to_recv) {
+	DEBUG_POST(("[rawhid] polling. reading up to %d packets", x->x_packets_to_recv));
 
-		DEBUG_POST(("\n[rawhid] %d° iteration \n", packets_received));
+	while (x->x_isOpen && recv_pakts < x->x_packets_to_recv) {
 		recv_bytes = rawhid_recv(0, x->x_inbuf, BLOCK_SIZE, 0);
 		// post("[rawhid] receive loop #%d", i);
 
 		if (recv_bytes > 0) {
 			int j = 0;
-			packets_received++;
-			DEBUG_POST(("\n[rawhid] received %d bytes. %d° packet \n", recv_bytes,
-				    packets_received));
+			recv_pakts++;
+			DEBUG_POST(("[rawhid] %d° packet received: %d bytes", recv_pakts, recv_bytes));
 			for (j = 0; j < recv_bytes; j++) {
 				outlet_float(x->x_data_outlet, (t_float)x->x_inbuf[j]);
 			}
 
 		} else if (recv_bytes < 0) {
-			post("\n[rawhid] error reading, device went offline\n");
+			post("[rawhid] error reading, device went offline");
 			rawhid_close_device(x);
 			break;
 		} else {
-			DEBUG_POST(("\n[rawhid] Received nothing. Exit\n"));
+			DEBUG_POST(("[rawhid] no packets to read"));
 			break;
 		}
 	}
-
-	DEBUG_POST(
-	    ("[rawhid] New clock in %.1f ms. Readed %i packets", x->x_deltime, packets_received));
+	DEBUG_POST(("[rawhid] %i packets received. next polling in %.1f ms", recv_pakts, x->x_deltime));
 	clock_delay(x->x_clock, x->x_deltime);
 }
 
@@ -185,21 +182,10 @@ static void rawhid_list(t_rawhid *x, t_symbol *s, int argc, t_atom *argv)
 		post("[rawhid] truncated list of %d elements to %d", argc, count);
 		count = RAWHID_BUF_SIZE;
 	}
-	for (i = 0; i < count; i++)
+	for (i = 0; i < count; i++){
 		temp_array[i] = ((unsigned char)atom_getint(argv + i)) & 0xFF; /* brutal conv */
+	}	
 	result = write_serials(x, temp_array, count);
-}
-
-static void rawhid_close_device(t_rawhid *x)
-{
-	if (x->x_isOpen) {
-		rawhid_close(0);
-		x->x_isOpen = 0;
-		clock_unset(x->x_clock);
-		post("[rawhid] Device 0x%04x 0x%04x closed", x->x_brandId, x->x_productId);
-	} else {
-		post("[rawhid] No open device to close found", x->x_brandId, x->x_productId);
-	}
 }
 
 static void rawhid_open_device(t_rawhid *x, t_symbol *brandId, t_symbol *productId)
@@ -224,30 +210,42 @@ static void rawhid_open_device(t_rawhid *x, t_symbol *brandId, t_symbol *product
 	}
 }
 
+static void rawhid_close_device(t_rawhid *x)
+{
+	if (x->x_isOpen) {
+		rawhid_close(0);
+		x->x_isOpen = 0;
+		clock_unset(x->x_clock);
+		post("[rawhid] Device 0x%04x 0x%04x closed", x->x_brandId, x->x_productId);
+	} else {
+		post("[rawhid] There are no open devices to close.");
+	}
+}
+
 static void rawhid_poll(t_rawhid *x, t_float poll)
 {
-	post("[rawhid] Polling set to %f", poll);
+	post("[rawhid] Polling set to %.01fms", poll);
 	x->x_deltime = poll;
 }
 
 static void rawhid_packets(t_rawhid *x, t_float packets)
 {
 	x->x_packets_to_recv = (size_t)packets;
-	post("[rawhid] Packets set to %d", x->x_packets_to_recv);
+	post("[rawhid] Packets to receive per poll set to %d", x->x_packets_to_recv);
 }
 
 /* the 'constructor' method which defines the t_rawhid struct for this
    instance and returns it to the caller which is the Pd core */
 static void *rawhid_new(void)
 {
-	post("[rawhid] Starting now");
+	post("[rawhid] Starting ...");
 	t_rawhid *x = (t_rawhid *)pd_new(rawhid_class);
 
 	x->x_inbuf = getbytes(RAWHID_BUF_SIZE);
 	x->x_outbuf = getbytes(RAWHID_BUF_SIZE);
 	if (NULL == x->x_inbuf || NULL == x->x_outbuf) {
-		pd_error(x, "[rawhid] unable to allocate output buffer");
-		return 0;
+		pd_error(x, "[rawhid] fatal error : unable to allocate buffer");
+		return 1;
 	}
 	x->x_inbuf_len = RAWHID_BUF_SIZE;
 	x->x_outbuf_len = RAWHID_BUF_SIZE;
@@ -261,10 +259,7 @@ static void *rawhid_new(void)
 	 * CPU time wasted. */
 	x->x_deltime = 1000;
 	x->x_clock = clock_new(x, (t_method)rawhid_tick);
-
-	post("[rawhid] End of starting");
-
-	clock_delay(x->x_clock, x->x_deltime);
+	post("[rawhid] Successfully started");
 	return (void *)x;
 }
 
