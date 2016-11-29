@@ -10,10 +10,10 @@ SOURCES = rawhid.c
 
 # list all pd objects (i.e. myobject.pd) files here, and their helpfiles will
 # be included automatically
-PDOBJECTS = mypdobject.pd
+PDOBJECTS = 
 
 # example patches and related files, in the 'examples' subfolder
-EXAMPLES = bothtogether.pd
+EXAMPLES = dump-rawhid.pd
 
 # manuals and related files, in the 'manual' subfolder
 MANUAL = manual.txt
