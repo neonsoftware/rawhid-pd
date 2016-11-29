@@ -35,7 +35,7 @@ UNITTESTS =
 #
 #------------------------------------------------------------------------------#
 
-ALL_CFLAGS =-Wall -W -Wextra -pedantic -I"$(PD_INCLUDE)" -Wno-implicit-function-declaration -Wno-unused-parameter -Wno-unused-function -std=c99
+ALL_CFLAGS =-DOS_macosx -Wall -W -Wextra -pedantic -I"$(PD_INCLUDE)" -Wno-implicit-function-declaration -Wno-unused-parameter -Wno-unused-function -std=c99
 ALL_LDFLAGS =  
 SHARED_LDFLAGS =
 ALL_LIBS = 
